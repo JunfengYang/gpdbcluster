@@ -18,7 +18,7 @@ Make sure docker and docker-compose installed.
 * |-scripts
 	* |-gpdb-hosts (A file contains hosts to install GPDB segments)
 	* |-gpinitsystem_config (gpinitsystem config file)
-	* |-install-gpdb.sh (For master host, to install GPDB cluster, **Note:** Please set correct env path taht located in container)
+	* |-install-gpdb.sh (For master host, to install GPDB cluster, **Note:** Please set correct env path that located in container)
 	* |-ssh-start.sh (For segment hosts, start ssh service)
 	* |-wait-for-it.sh (**Note:** Please get from https://github.com/vishnubob/wait-for-it)
 * |-docker-compose.yml (The config for docker-compose)
@@ -52,7 +52,9 @@ su gpadmin
 gpstate
 ```
 
-You can restart the stop services by running
+You can restart the stopped services by running
 ```bash
 docker-compose up [-d]
 ```
+
+Run ```docker-compose rm``` to remove stopped containers.
