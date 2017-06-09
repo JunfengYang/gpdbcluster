@@ -1,0 +1,51 @@
+FROM centos:6.7
+
+ENV VERSION=4.3.11.0 \
+    TINI_VERSION=v0.13.0
+ENV ZIP_FILE_NAME=/tmp/greenplum-db-${VERSION}-build-1-rhel5-x86_64.zip \
+    BIN_FILE_NAME=/tmp/greenplum-db-${VERSION}-build-1-rhel5-x86_64.bin \
+    TINI_URL=https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini
+
+COPY configs/* /tmp/
+RUN echo root:pivotal | chpasswd \
+        && yum update -y \
+        && yum install -y unzip which wget tar more util-linux-ng passwd openssh-clients openssh-server nc lsof ed m4 perl \
+        && yum install -y centos-release-SCL \
+        && yum install -y python27 \
+        && yum clean all \
+        && wget --progress=dot:giga $TINI_URL -O /tini \
+        && chmod +x /tini \
+        && wget --progress=dot:giga --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" -O /opt/jdk-8u73-linux-x64.tar.gz http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz \
+        && tar zxf /opt/jdk-8u73-linux-x64.tar.gz -C /opt/ \
+        && wget --progress=dot:giga -P /opt/ http://archive.apache.org/dist/ant/binaries/apache-ant-1.9.8-bin.tar.gz \
+        && tar zxf /opt/apache-ant-1.9.8-bin.tar.gz -C /opt/ \
+        && wget --progress=dot:giga -P /opt/ http://www.us.apache.org/dist/ant/ivy/2.4.0/apache-ivy-2.4.0-bin.tar.gz \
+        && tar zxf /opt/apache-ivy-2.4.0-bin.tar.gz -C /opt/ \
+        && unzip $ZIP_FILE_NAME -d /tmp/ \
+        && rm $ZIP_FILE_NAME \
+        && sed -i s/"more << EOF"/"cat << EOF"/g $BIN_FILE_NAME \
+        && echo -e "yes\n\nyes\nyes\n" | $BIN_FILE_NAME \
+        && rm $BIN_FILE_NAME \
+        && cat /tmp/sysctl.conf.add >> /etc/sysctl.conf \
+        && cat /tmp/limits.conf.add >> /etc/security/limits.conf \
+        && cat /tmp/90-nproc.conf.add >> /etc/security/limits.d/90-nproc.conf \
+        && cp /tmp/ssh_config /etc/ssh/ssh_config \
+        && rm -f /tmp/*.add \
+        && hostname > ~/orig_hostname \
+        && /usr/sbin/groupadd gpadmin \
+        && /usr/sbin/useradd gpadmin -g gpadmin -G wheel \
+        && echo "pivotal"|passwd --stdin gpadmin \
+        && echo "gpadmin        ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers \
+        && cat /tmp/env_setting >>  /home/gpadmin/.bashrc \
+        && mkdir /home/gpadmin/.ssh/ \
+        && cat /tmp/id_rsa.pub >> /home/gpadmin/.ssh/authorized_keys \
+        && cp /tmp/id_rsa /home/gpadmin/.ssh/ \
+        && chown -R gpadmin: /home/gpadmin \
+        && chmod 600 /home/gpadmin/.ssh/id_rsa \
+        && mkdir -p /data/master /data/primary \
+        && chmod 777 /usr/local/ \
+        && chown -R gpadmin: /data \
+        && chown -R gpadmin: /usr/local/green* \
+        && sed -ri 's/UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config
+
+ENTRYPOINT ["/tini", "--"]

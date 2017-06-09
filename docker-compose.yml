@@ -1,0 +1,36 @@
+version: '2'
+services:
+  mdw:
+    build:
+      context: .
+      dockerfile: DockerfileMaster
+    image: gpdbmaster
+    hostname: mdw
+    ports:
+     - "5432:5432"
+    volumes:
+      - please fill this line!
+    depends_on:
+      - sdw1
+      - sdw2
+    command: ["bash", "'path in container'/wait-for-it.sh", "sdw2:22", "--", "bash", "'path in container'/install-gpdb.sh"]
+    tty: true
+  sdw1:
+    build:
+      context: .
+      dockerfile: DockerfileSegHost
+    image: gptexthost
+    hostname: sdw1
+    volumes:
+      - please fill this line!
+    command: ["bash", "'path in container'/ssh-start.sh"]
+    tty: true
+  sdw2:
+    image: gptexthost
+    hostname: sdw2
+    volumes:
+      - please fill this line!
+    depends_on:
+      - sdw1
+    command: ["bash", "'path in container'/wait-for-it.sh", "sdw1:22", "--", "bash", "'path in container'/ssh-start.sh"]
+    tty: true

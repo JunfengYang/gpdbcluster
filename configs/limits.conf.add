@@ -1,0 +1,6 @@
+######################
+# HAWQ CONFIG PARAMS #
+######################
+
+* soft nofile 65536
+* hard nofile 65536
