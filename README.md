@@ -5,7 +5,7 @@ Using docker-compose to deploy GPDB cluster. It's easy to config and deploy.
 #### Instructions
 Make sure docker and docker-compose installed.
 
-* |-DockerfileMaster (The docker file to build the GPDB master host image)
+* |-DockerfileMaster (The docker file to build the GPDB master host image. **Note:** Need to set correct GPDB binary version and binary name)
 * |-DockerfileSegHost (The docker file to build the GPDB segment host image)
 * |-configs
 	* |-90-nproc.conf.add (nporc cinfig)
